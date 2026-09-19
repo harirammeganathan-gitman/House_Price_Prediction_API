@@ -1,5 +1,6 @@
 import requests
 import pandas as pd
+import os
 
 #url = "http://127.0.0.1:5000/predict"
 url = "https://uptor-ml-ai-api-workflow-1.onrender.com/predict"
@@ -18,10 +19,13 @@ if response.status_code == 200:
     for item in results:
         print(f"Size: {item['size']} -> Predicted Price: {item['predicted_price']}")
 
-    # Save results to CSV
+    # Save results to CSV in workspace
+    workspace = os.getcwd()
     df = pd.DataFrame(results)
-    df.to_csv("predictions.csv", index=False)
-    print("\n✅ Results saved to predictions.csv")
+    df.to_csv(os.path.join(workspace, "predictions.csv"), index=False)
+
+    # Use ASCII instead of emoji to avoid UnicodeEncodeError
+    print("\n[OK] Results saved to predictions.csv")
 
 else:
     print(f"Error {response.status_code}: {response.text}")

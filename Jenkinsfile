@@ -62,9 +62,10 @@ pipeline {
                     for /F %%p in (app.pid) do taskkill /PID %%p /F
                     del app.pid
                 )
-                powershell -Command "Remove-Item -Recurse -Force %VENV_DIR%"
+                timeout /t 5 > nul
+                python -c "import shutil; shutil.rmtree('%VENV_DIR%', ignore_errors=True)"
             '''
-            archiveArtifacts artifacts: 'house_model.pkl, app.log', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'house_model.pkl, app.log, predictions.csv', allowEmptyArchive: true
         }
         success {
             echo 'Build, train, and smoke test succeeded.'
