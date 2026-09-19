@@ -16,7 +16,7 @@ if response.status_code == 200:
 
     # Print results neatly
     for item in results:
-        print(f"Size: {item['size']} → Predicted Price: {item['predicted_price']}")
+        print(f"Size: {item['size']} -> Predicted Price: {item['predicted_price']}")
 
     # Save results to CSV
     df = pd.DataFrame(results)
