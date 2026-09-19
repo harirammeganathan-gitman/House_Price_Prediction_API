@@ -1,0 +1,27 @@
+# Requirements for the AI_ML_Prediction project (day_19)
+# Pinned versions for deployment reproducibility. Adjust if your deployment target
+# requires different versions (e.g., older system Python).
+
+# Runtime requirements for the AI_ML_Prediction project (day_19)
+# Use >= to allow compatible patch upgrades during installs. Server / dev
+# packages are kept separate in `requirements-servers.txt`.
+
+# Web framework
+Flask>=2.2
+
+# ML / data
+scikit-learn>=1.2
+pandas>=1.5
+numpy>=1.24
+scipy>=1.10
+joblib>=1.2
+gunicorn==22.0.0
+
+# HTTP client used by tests / clients
+requests>=2.28
+
+# Load env vars from .env (optional)
+python-dotenv>=0.21
+
+# Notes:
+# - For production WSGI servers or dev tools, see `requirements-servers.txt`.
