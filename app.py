@@ -57,4 +57,4 @@ def predict():
 
 # Run the app (must be last)
 if __name__ == "__main__":
-    app.run(port=5001, debug=True)  # set debug=False in production
+    app.run(port=5000, debug=True)  # set debug=False in production
