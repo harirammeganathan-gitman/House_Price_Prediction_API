@@ -43,16 +43,18 @@ pipeline {
                 bat '''
                     call %VENV_DIR%\\Scripts\\activate
 
-                    start /B python app.py > app.log 2>&1
-                    echo %ERRORLEVEL% > app.pid
+                    rem Start Flask app in background and capture PID properly
+                    powershell -Command "Start-Process python app.py -RedirectStandardOutput app.log -NoNewWindow; (Get-Process -Name python | Select -First 1 -ExpandProperty Id) | Out-File -FilePath app.pid -Encoding ascii"
 
                     echo Waiting for API to become ready...
                     set ready=0
+
                     for /L %%i in (1,1,30) do (
-                        curl -s -o nul http://127.0.0.1:5000/ && (
+                        curl http://127.0.0.1:5000/ > nul 2>&1
+                        if %%ERRORLEVEL%%==0 (
                             set ready=1
                             echo API is up
-                            goto :ready
+                            goto ready
                         )
                         timeout /t 1 > nul
                     )
@@ -77,7 +79,7 @@ pipeline {
                     for /F %%p in (app.pid) do taskkill /PID %%p /F
                     del app.pid
                 )
-                del /Q %VENV_DIR%
+                rmdir /S /Q %VENV_DIR%
             '''
             archiveArtifacts artifacts: 'house_model.pkl, app.log', allowEmptyArchive: true
         }
