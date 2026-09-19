@@ -43,28 +43,11 @@ pipeline {
                 bat '''
                     call %VENV_DIR%\\Scripts\\activate
 
-                    rem Start Flask app in background and capture PID properly
-                    powershell -Command "Start-Process python app.py -RedirectStandardOutput app.log -NoNewWindow; (Get-Process -Name python | Select -First 1 -ExpandProperty Id) | Out-File -FilePath app.pid -Encoding ascii"
+                    rem Start Flask app in background and capture PID directly
+                    powershell -Command "$p = Start-Process python app.py -RedirectStandardOutput app.log -NoNewWindow -PassThru; $p.Id | Out-File -FilePath app.pid -Encoding ascii"
 
                     echo Waiting for API to become ready...
-                    set ready=0
-
-                    for /L %%i in (1,1,30) do (
-                        curl http://127.0.0.1:5000/ > nul 2>&1
-                        if %%ERRORLEVEL%%==0 (
-                            set ready=1
-                            echo API is up
-                            goto ready
-                        )
-                        timeout /t 1 > nul
-                    )
-                    :ready
-
-                    if %ready%==0 (
-                        echo API did not start in time
-                        type app.log
-                        exit /b 1
-                    )
+                    powershell -Command "$ready=0; for ($i=0; $i -lt 30; $i++) { try { Invoke-WebRequest -Uri http://127.0.0.1:5000/ -UseBasicParsing | Out-Null; $ready=1; Write-Output 'API is up'; break } catch { Start-Sleep -Seconds 1 } }; if ($ready -eq 0) { Write-Output 'API did not start in time'; Get-Content app.log; exit 1 }"
 
                     python test_prediction.py
                 '''
@@ -79,7 +62,7 @@ pipeline {
                     for /F %%p in (app.pid) do taskkill /PID %%p /F
                     del app.pid
                 )
-                rmdir /S /Q %VENV_DIR%
+                powershell -Command "Remove-Item -Recurse -Force %VENV_DIR%"
             '''
             archiveArtifacts artifacts: 'house_model.pkl, app.log', allowEmptyArchive: true
         }
