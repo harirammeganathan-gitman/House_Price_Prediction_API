@@ -5,7 +5,7 @@ pipeline {
         VENV_DIR = 'venv'
         IMAGE_NAME = 'house-price-prediction'
         IMAGE_TAG = 'latest'
-        DOCKER_REGISTRY = 'hrmdocker'   // your DockerHub username
+        DOCKER_REGISTRY = 'hrmddocker'   // your DockerHub username
     }
 
     options {
