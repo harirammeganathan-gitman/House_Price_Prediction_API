@@ -5,9 +5,9 @@ app = Flask(__name__)
 
 # Load model once at startup, with error handling
 try:
-    model = joblib.load("uptor_004.pkl")
+    model = joblib.load("house_model.pkl")
 except FileNotFoundError:
-    raise RuntimeError("Model file 'uptor_004.pkl' not found. Place it in the working directory.")
+    raise RuntimeError("Model file 'house_model.pkl' not found. Place it in the working directory.")
 
 # Define ALL routes here before app.run()
 @app.route("/")
