@@ -1,0 +1,18 @@
+# Use a lightweight Python base
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copy requirements (include streamlit + requests)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install streamlit requests
+
+# Copy your Streamlit app
+COPY app_streamlit.py .
+
+# Expose Streamlit’s default port
+EXPOSE 8501
+
+# Run Streamlit
+CMD ["streamlit", "run", "app_streamlit.py", "--server.port=8501", "--server.address=0.0.0.0"]

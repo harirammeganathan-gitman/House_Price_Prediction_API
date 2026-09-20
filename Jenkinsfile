@@ -3,9 +3,10 @@ pipeline {
 
     environment {
         VENV_DIR = 'venv'
-        IMAGE_NAME = 'house-price-prediction'
+        API_IMAGE = 'house-price-prediction'
+        UI_IMAGE  = 'house-price-ui'
         IMAGE_TAG = 'latest'
-        VERSION_TAG = "${BUILD_NUMBER}" // auto-generated version tag based on Jenkins build number
+        VERSION_TAG = "${BUILD_NUMBER}"
         DOCKER_REGISTRY = 'hrmddocker'   // your DockerHub username
     }
 
@@ -46,8 +47,6 @@ pipeline {
             steps {
                 bat '''
                     call %VENV_DIR%\\Scripts\\activate
-
-                    rem Start Flask app in background and capture PID
                     powershell -Command "$p = Start-Process python app.py -RedirectStandardOutput app.log -NoNewWindow -PassThru; $p.Id | Out-File -FilePath app.pid -Encoding ascii"
 
                     echo Waiting for API to become ready...
@@ -64,29 +63,38 @@ pipeline {
                     echo Checking Docker installation...
                     docker --version
                     docker info
-                    dir
                 '''
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build API Image') {
             steps {
                 bat '''
-                    docker build -t %IMAGE_NAME%:%IMAGE_TAG% .
+                    docker build -t %DOCKER_REGISTRY%/%API_IMAGE%:%VERSION_TAG% -t %DOCKER_REGISTRY%/%API_IMAGE%:%IMAGE_TAG% -f Dockerfile.api .
                 '''
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Build UI Image') {
+            steps {
+                bat '''
+                    docker build -t %DOCKER_REGISTRY%/%UI_IMAGE%:%VERSION_TAG% -t %DOCKER_REGISTRY%/%UI_IMAGE%:%IMAGE_TAG% -f Dockerfile.streamlit .
+                '''
+            }
+        }
+
+        stage('Push Images') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     bat '''
                         echo Logging in to DockerHub...
                         docker login -u %DOCKER_USER% -p %DOCKER_PASS%
-                        docker tag %IMAGE_NAME%:%IMAGE_TAG% %DOCKER_REGISTRY%/%IMAGE_NAME%:%IMAGE_TAG%
-                        docker tag %IMAGE_NAME%:%IMAGE_TAG% %DOCKER_REGISTRY%/%IMAGE_NAME%:%VERSION_TAG%
-                        docker push %DOCKER_REGISTRY%/%IMAGE_NAME%:%IMAGE_TAG%
-                        docker push %DOCKER_REGISTRY%/%IMAGE_NAME%:%VERSION_TAG%
+
+                        docker push %DOCKER_REGISTRY%/%API_IMAGE%:%VERSION_TAG%
+                        docker push %DOCKER_REGISTRY%/%API_IMAGE%:%IMAGE_TAG%
+
+                        docker push %DOCKER_REGISTRY%/%UI_IMAGE%:%VERSION_TAG%
+                        docker push %DOCKER_REGISTRY%/%UI_IMAGE%:%IMAGE_TAG%
                     '''
                 }
             }
@@ -106,10 +114,10 @@ pipeline {
             archiveArtifacts artifacts: 'house_model.pkl, app.log, predictions.csv', allowEmptyArchive: true
         }
         success {
-            echo 'Build, train, smoke test, Docker debug, image build and push succeeded.'
+            echo 'Build, train, smoke test, API image and UI image build + push succeeded.'
         }
         failure {
-            echo 'Pipeline failed — check app.log and the console output above for details.'
+            echo 'Pipeline failed — check app.log and console output for details.'
         }
     }
 }
