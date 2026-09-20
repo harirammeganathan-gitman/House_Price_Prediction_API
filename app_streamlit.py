@@ -13,7 +13,7 @@ if st.button("Predict Price"):
 
         # Send request to Flask API
         response = requests.post(
-            "http://localhost:5010/predict",
+            "http://host.docker.internal:5010/predict",
             json={"sizes": sizes}
         )
 
