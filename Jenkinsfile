@@ -114,10 +114,10 @@ pipeline {
             archiveArtifacts artifacts: 'house_model.pkl, app.log, predictions.csv', allowEmptyArchive: true
         }
         success {
-            echo 'Build, train, smoke test, API image and UI image build + push succeeded.'
+            echo '✅ Build, train, smoke test, API image and UI image build + push succeeded.'
         }
         failure {
-            echo 'Pipeline failed — check app.log and console output for details.'
+            echo '❌ Pipeline failed — check app.log and console output for details.'
         }
     }
 }
