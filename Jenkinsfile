@@ -5,7 +5,7 @@ pipeline {
         VENV_DIR = 'venv'
         IMAGE_NAME = 'house-price-prediction'
         IMAGE_TAG = 'latest'
-        DOCKER_REGISTRY = 'your-dockerhub-username'   // replace with your DockerHub username
+        DOCKER_REGISTRY = 'hrmdocker'   // your DockerHub username
     }
 
     options {
@@ -78,10 +78,14 @@ pipeline {
 
         stage('Push Docker Image') {
             steps {
-                bat '''
-                    docker tag %IMAGE_NAME%:%IMAGE_TAG% %DOCKER_REGISTRY%/%IMAGE_NAME%:%IMAGE_TAG%
-                    docker push %DOCKER_REGISTRY%/%IMAGE_NAME%:%IMAGE_TAG%
-                '''
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    bat '''
+                        echo Logging in to DockerHub...
+                        docker login -u %DOCKER_USER% -p %DOCKER_PASS%
+                        docker tag %IMAGE_NAME%:%IMAGE_TAG% %DOCKER_REGISTRY%/%IMAGE_NAME%:%IMAGE_TAG%
+                        docker push %DOCKER_REGISTRY%/%IMAGE_NAME%:%IMAGE_TAG%
+                    '''
+                }
             }
         }
     }
