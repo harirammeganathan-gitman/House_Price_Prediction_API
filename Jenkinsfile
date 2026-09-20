@@ -5,6 +5,7 @@ pipeline {
         VENV_DIR = 'venv'
         IMAGE_NAME = 'house-price-prediction'
         IMAGE_TAG = 'latest'
+        VERSION_TAG = "${BUILD_NUMBER}" // auto-generated version tag based on Jenkins build number
         DOCKER_REGISTRY = 'hrmddocker'   // your DockerHub username
     }
 
@@ -83,7 +84,9 @@ pipeline {
                         echo Logging in to DockerHub...
                         docker login -u %DOCKER_USER% -p %DOCKER_PASS%
                         docker tag %IMAGE_NAME%:%IMAGE_TAG% %DOCKER_REGISTRY%/%IMAGE_NAME%:%IMAGE_TAG%
+                        docker tag %IMAGE_NAME%:%IMAGE_TAG% %DOCKER_REGISTRY%/%IMAGE_NAME%:%VERSION_TAG%
                         docker push %DOCKER_REGISTRY%/%IMAGE_NAME%:%IMAGE_TAG%
+                        docker push %DOCKER_REGISTRY%/%IMAGE_NAME%:%VERSION_TAG%
                     '''
                 }
             }
